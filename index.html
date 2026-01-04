@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <meta name="theme-color" content="#0f2027">
     <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGFob3JlIFByYXllcnMiLCJzaG9ydF9uYW1lIjoiUHJheWVycyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiJc3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGUyMDI3IiwidGhlbWVfY29sb3IiOiIjMGUyMDI3IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzUxNDIvNTE0Mjc5OS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5142/5142799.png">
@@ -26,19 +27,23 @@
             background-attachment: fixed;
             color: var(--text-primary);
             font-family: var(--font-main);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100dvh;
-            -webkit-tap-highlight-color: transparent;
-            overflow: hidden;
+            /* 2. RESTORED NATIVE SCROLL: Removed overflow hidden so browser controls work */
+            min-height: 100vh;
+            display: flex; 
+            justify-content: center;
+            /* Allow vertical overscroll for pull-to-refresh */
+            overscroll-behavior-y: auto; 
         }
 
         .app-container {
-            width: 100%; max-width: 480px; padding: 20px;
-            box-sizing: border-box; display: flex; flex-direction: column;
-            max-height: 100dvh; overflow-y: auto;
-            scrollbar-width: none; -ms-overflow-style: none;
+            width: 100%; 
+            max-width: 480px; 
+            padding: 20px;
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column;
+            /* Removed internal scroll constraints */
         }
-        .app-container::-webkit-scrollbar { display: none; }
 
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -71,7 +76,7 @@
 
         /* Media Queries */
         @media (max-width: 360px) { .app-container { padding: 15px; } .hero-section { padding: 15px; } .picker-btn { height: 44px; margin-bottom: 15px; } .city-info h1 { font-size: 1.2rem; } }
-        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; padding-top: 10px; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; overflow-y: auto; max-height: 90vh; padding-bottom: 20px; scrollbar-width: none; } }
+        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; padding-top: 10px; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; } }
     </style>
 </head>
 <body>
@@ -107,7 +112,6 @@
     let prayerTimesCache = [];
     let countdownInterval = null;
 
-    // --- SERVICE WORKER REGISTRATION (OFFLINE SUPPORT) ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
             .then(() => console.log('Offline Ready'))
@@ -150,23 +154,18 @@
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const yFull = dateObj.getFullYear();
         const dateKey = `${d}-${m}-${yFull}`;
-
-        // Try Network First, then Cache
         const apiURL = `https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${yFull}?city=Lahore&country=Pakistan&method=1`;
 
         try {
             const res = await fetch(apiURL);
             const data = await res.json();
-            
             setTimeout(() => {
                 if (data.code === 200) {
-                    // Save to local storage for fallback
                     localStorage.setItem(dateKey, JSON.stringify(data));
                     processData(data, dateObj);
                 }
             }, 300);
         } catch (err) {
-            // Offline Fallback
             const cached = localStorage.getItem(dateKey);
             if(cached) {
                 processData(JSON.parse(cached), dateObj);
