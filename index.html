@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f2027">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGFob3JlIFByYXllcnMiLCJzaG9ydF9uYW1lIjoiUHJheWVycyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiJc3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGUyMDI3IiwidGhlbWVfY29sb3IiOiIjMGUyMDI3IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzUxNDIvNTE0Mjc5OS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5142/5142799.png">
+    
+    <title>Lahore Prayer Times</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #8fbac8;
+            --accent: #4fd1c5;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100dvh;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%; max-width: 480px; padding: 20px;
+            box-sizing: border-box; display: flex; flex-direction: column;
+            max-height: 100dvh; overflow-y: auto;
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .app-container::-webkit-scrollbar { display: none; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; animation: fadeInUp 0.6s ease-out; }
+        .city-info h1 { font-size: 1.4rem; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .hijri-display { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500; min-height: 1.2em; transition: opacity 0.5s; }
+        .date-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
+
+        .picker-btn { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 20px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; color: var(--text-primary); flex-shrink: 0; animation: fadeInUp 0.6s ease-out 0.1s backwards; }
+        .picker-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+        .picker-text { font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .calendar-icon { width: 20px; height: 20px; fill: var(--text-secondary); }
+        #date-input-hidden { position: absolute; opacity: 0; pointer-events: none; bottom: 0; left: 50%; }
+
+        .hero-section { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); flex-shrink: 0; animation: fadeInUp 0.6s ease-out 0.2s backwards; }
+        .hero-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+        .next-prayer-name { font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+        .countdown-timer { font-family: var(--font-mono); font-size: clamp(1.8rem, 8vw, 2.5rem); font-weight: 700; color: var(--text-primary); }
+
+        .prayer-grid { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 40px; }
+        .prayer-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
+        .prayer-card.active { background: rgba(79, 209, 197, 0.15); border-color: var(--accent); transform: scale(1.02); box-shadow: 0 4px 12px rgba(79, 209, 197, 0.2); }
+        .prayer-info { display: flex; flex-direction: column; }
+        .p-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+        .p-range { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
+        .p-time-main { font-size: 1.1rem; font-weight: 600; color: var(--accent); text-align: right; }
+        
+        .skeleton { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border-radius: 12px; height: 72px; width: 100%; border: 1px solid var(--card-border); }
+
+        /* Media Queries */
+        @media (max-width: 360px) { .app-container { padding: 15px; } .hero-section { padding: 15px; } .picker-btn { height: 44px; margin-bottom: 15px; } .city-info h1 { font-size: 1.2rem; } }
+        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; padding-top: 10px; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; overflow-y: auto; max-height: 90vh; padding-bottom: 20px; scrollbar-width: none; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="city-info">
+            <h1>Lahore</h1>
+            <div class="hijri-display" id="hijri-display">Loading...</div>
+        </div>
+        <div class="date-badge" id="date-badge">--/--/--</div>
+    </header>
+
+    <div class="picker-btn" onclick="openCalendar()">
+        <span class="picker-text" id="picker-display">
+            <svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+            Loading...
+        </span>
+        <input type="date" id="date-input-hidden">
+    </div>
+
+    <div class="hero-section">
+        <div class="hero-label">Next Prayer</div>
+        <div class="next-prayer-name" id="next-name">--</div>
+        <div class="countdown-timer" id="countdown">--:--:--</div>
+    </div>
+
+    <div class="prayer-grid" id="prayer-grid"></div>
+</div>
+
+<script>
+    const elements = { grid: document.getElementById('prayer-grid'), pickerBtn: document.getElementById('picker-display'), hiddenInput: document.getElementById('date-input-hidden'), dateBadge: document.getElementById('date-badge'), hijriDisplay: document.getElementById('hijri-display'), nextName: document.getElementById('next-name'), countdown: document.getElementById('countdown') };
+    let prayerTimesCache = [];
+    let countdownInterval = null;
+
+    // --- SERVICE WORKER REGISTRATION (OFFLINE SUPPORT) ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('Offline Ready'))
+            .catch(err => console.log('SW Failed', err));
+    }
+
+    const today = new Date();
+    elements.hiddenInput.valueAsDate = today;
+    handleDateChange(today);
+
+    elements.hiddenInput.addEventListener('change', (e) => {
+        const date = new Date(e.target.value);
+        if (!isNaN(date)) handleDateChange(date);
+    });
+
+    function openCalendar() { try { elements.hiddenInput.showPicker(); } catch (e) { elements.hiddenInput.click(); elements.hiddenInput.focus(); } }
+
+    function handleDateChange(dateObj) {
+        updateVisuals(dateObj);
+        renderSkeletons();
+        fetchPrayerTimes(dateObj);
+    }
+
+    function updateVisuals(dateObj) {
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const y = String(dateObj.getFullYear()).slice(-2);
+        elements.pickerBtn.innerHTML = `<svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg> ${d} / ${m} / ${y}`;
+        elements.dateBadge.textContent = `${d}/${m}/${y}`;
+    }
+
+    function renderSkeletons() {
+        elements.grid.innerHTML = '';
+        for(let i=0; i<5; i++) { const el = document.createElement('div'); el.className = 'skeleton'; elements.grid.appendChild(el); }
+        elements.hijriDisplay.style.opacity = '0.5';
+    }
+
+    async function fetchPrayerTimes(dateObj) {
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const yFull = dateObj.getFullYear();
+        const dateKey = `${d}-${m}-${yFull}`;
+
+        // Try Network First, then Cache
+        const apiURL = `https://api.aladhan.com/v1/timingsByCity/${d}-${m}-${yFull}?city=Lahore&country=Pakistan&method=1`;
+
+        try {
+            const res = await fetch(apiURL);
+            const data = await res.json();
+            
+            setTimeout(() => {
+                if (data.code === 200) {
+                    // Save to local storage for fallback
+                    localStorage.setItem(dateKey, JSON.stringify(data));
+                    processData(data, dateObj);
+                }
+            }, 300);
+        } catch (err) {
+            // Offline Fallback
+            const cached = localStorage.getItem(dateKey);
+            if(cached) {
+                processData(JSON.parse(cached), dateObj);
+                elements.hijriDisplay.textContent += " (Offline)";
+            } else {
+                elements.grid.innerHTML = '<div style="text-align:center; color:#8fbac8; padding:20px;">No Internet & No Cache</div>';
+            }
+        }
+    }
+
+    function processData(data, dateObj) {
+        renderPrayers(data.data.timings, dateObj);
+        const h = data.data.date.hijri;
+        elements.hijriDisplay.textContent = `${h.day} ${h.month.en} ${h.year}`;
+        elements.hijriDisplay.style.opacity = '1';
+    }
+
+    function renderPrayers(timings, dateContext) {
+        elements.grid.innerHTML = '';
+        prayerTimesCache = [];
+        const schedule = [
+            { label: 'Fajr',    startKey: 'Fajr',    endKey: 'Sunrise' },
+            { label: 'Zuhr',    startKey: 'Dhuhr',   endKey: 'Asr' },
+            { label: 'Asr',     startKey: 'Asr',     endKey: 'Maghrib' },
+            { label: 'Maghrib', startKey: 'Maghrib', endKey: 'Isha' },
+            { label: 'Isha',    startKey: 'Isha',    endKey: 'Midnight' }
+        ];
+
+        const now = new Date();
+        const isToday = now.toDateString() === dateContext.toDateString();
+
+        schedule.forEach((item, index) => {
+            const rawStart = timings[item.startKey];
+            const rawEnd = timings[item.endKey];
+            if(!rawStart || !rawEnd) return;
+            const card = document.createElement('div');
+            card.className = 'prayer-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `<div class="prayer-info"><span class="p-name">${item.label}</span><span class="p-range">Ends: ${formatTime(rawEnd)}</span></div><div class="p-time-main">${formatTime(rawStart)}</div>`;
+            elements.grid.appendChild(card);
+            const [h, m] = rawStart.split(':');
+            const pTime = new Date(dateContext);
+            pTime.setHours(h, m, 0);
+            prayerTimesCache.push({ name: item.label, time: pTime, element: card });
+        });
+
+        if (isToday) { startCountdown(); } 
+        else { stopCountdown(); elements.nextName.textContent = "Future Date"; elements.countdown.textContent = "--:--:--"; }
+    }
+
+    function startCountdown() {
+        stopCountdown();
+        const tick = () => {
+            const now = new Date();
+            let next = null;
+            for (let p of prayerTimesCache) {
+                if (p.time > now) { next = p; prayerTimesCache.forEach(x => x.element.classList.remove('active')); p.element.classList.add('active'); break; }
+            }
+            if (!next) { elements.nextName.textContent = "Fajr (Next)"; elements.countdown.textContent = "Tomorrow"; prayerTimesCache.forEach(x => x.element.classList.remove('active')); return; }
+            elements.nextName.textContent = next.name;
+            const diff = next.time - now;
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            elements.countdown.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        };
+        tick(); countdownInterval = setInterval(tick, 1000);
+    }
+
+    function stopCountdown() { if (countdownInterval) clearInterval(countdownInterval); }
+    function formatTime(str) { if (!str) return '--:--'; const [hStr, mStr] = str.split(' ')[0].split(':'); let h = parseInt(hStr); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${mStr} ${ampm}`; }
+</script>
+</body>
+</html>
