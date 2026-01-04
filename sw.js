@@ -1,11 +1,12 @@
-const CACHE_NAME = 'lahore-prayers-v2';
+// WE CHANGED THE VERSION NUMBER HERE TO V3
+const CACHE_NAME = 'lahore-prayers-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html'
 ];
 
-// 1. Install Service Worker & Cache Index
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Force this new worker to become active immediately
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -13,22 +14,21 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Serve from Cache, Fallback to Network
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Return cached file if found, otherwise go to network
-      return cachedResponse || fetch(event.request);
+      // Network First strategy for data, Cache fallback
+      return fetch(event.request).catch(() => cachedResponse);
     })
   );
 });
 
-// 3. Clean up old caches (optional but good practice)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
         if (key !== CACHE_NAME) {
+          console.log("Removing old cache", key);
           return caches.delete(key);
         }
       }));
