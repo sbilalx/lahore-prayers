@@ -27,44 +27,45 @@
             background-attachment: fixed;
             color: var(--text-primary);
             font-family: var(--font-main);
-            /* 2. RESTORED NATIVE SCROLL: Removed overflow hidden so browser controls work */
+            /* 2. FLEXIBLE LAYOUT: Allows content to overflow naturally */
             min-height: 100vh;
             display: flex; 
             justify-content: center;
-            /* Allow vertical overscroll for pull-to-refresh */
-            overscroll-behavior-y: auto; 
+            align-items: flex-start; /* Aligns to top so scrolling works correctly */
+            padding-top: 20px;
+            padding-bottom: 40px;
+            box-sizing: border-box;
         }
 
         .app-container {
             width: 100%; 
             max-width: 480px; 
             padding: 20px;
-            box-sizing: border-box; 
-            display: flex; 
-            flex-direction: column;
-            /* Removed internal scroll constraints */
+            /* 3. REMOVED SCROLL LOCKS: No fixed height, no overflow hidden */
+            height: auto;
+            overflow: visible;
         }
 
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; animation: fadeInUp 0.6s ease-out; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; animation: fadeInUp 0.6s ease-out; }
         .city-info h1 { font-size: 1.4rem; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
         .hijri-display { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500; min-height: 1.2em; transition: opacity 0.5s; }
         .date-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
 
-        .picker-btn { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 20px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; color: var(--text-primary); flex-shrink: 0; animation: fadeInUp 0.6s ease-out 0.1s backwards; }
+        .picker-btn { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 20px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; color: var(--text-primary); animation: fadeInUp 0.6s ease-out 0.1s backwards; }
         .picker-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
         .picker-text { font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .calendar-icon { width: 20px; height: 20px; fill: var(--text-secondary); }
         #date-input-hidden { position: absolute; opacity: 0; pointer-events: none; bottom: 0; left: 50%; }
 
-        .hero-section { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); flex-shrink: 0; animation: fadeInUp 0.6s ease-out 0.2s backwards; }
+        .hero-section { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); animation: fadeInUp 0.6s ease-out 0.2s backwards; }
         .hero-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
         .next-prayer-name { font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
         .countdown-timer { font-family: var(--font-mono); font-size: clamp(1.8rem, 8vw, 2.5rem); font-weight: 700; color: var(--text-primary); }
 
-        .prayer-grid { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 40px; }
+        .prayer-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .prayer-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease; opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
         .prayer-card.active { background: rgba(79, 209, 197, 0.15); border-color: var(--accent); transform: scale(1.02); box-shadow: 0 4px 12px rgba(79, 209, 197, 0.2); }
         .prayer-info { display: flex; flex-direction: column; }
@@ -74,9 +75,8 @@
         
         .skeleton { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border-radius: 12px; height: 72px; width: 100%; border: 1px solid var(--card-border); }
 
-        /* Media Queries */
-        @media (max-width: 360px) { .app-container { padding: 15px; } .hero-section { padding: 15px; } .picker-btn { height: 44px; margin-bottom: 15px; } .city-info h1 { font-size: 1.2rem; } }
-        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; padding-top: 10px; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; } }
+        @media (max-width: 360px) { .app-container { padding: 10px; } .city-info h1 { font-size: 1.2rem; } }
+        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; } }
     </style>
 </head>
 <body>
@@ -113,9 +113,7 @@
     let countdownInterval = null;
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log('Offline Ready'))
-            .catch(err => console.log('SW Failed', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Failed', err));
     }
 
     const today = new Date();
