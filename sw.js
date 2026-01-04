@@ -1,13 +1,14 @@
-// VERSION V5 (Forces update for new jpg icon)
-const CACHE_NAME = 'lahore-prayers-v5';
+// VERSION V6 (Bump version to force update)
+const CACHE_NAME = 'lahore-prayers-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './icon.jpg'  // <--- Updated to match your file
+  './icon.jpg',
+  './manifest.json'  // <--- Added this line
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); 
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
