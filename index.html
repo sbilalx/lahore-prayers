@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <meta name="theme-color" content="#0f2027">
-    
     <title>Lahore Prayer Times</title>
 
     <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGFob3JlIFByYXllcnMiLCJzaG9ydF9uYW1lIjoiUHJheWVycyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiJc3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGUyMDI3IiwidGhlbWVfY29sb3IiOiIjMGUyMDI3IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzUxNDIvNTE0Mjc5OS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
@@ -28,65 +27,60 @@
             background-attachment: fixed;
             color: var(--text-primary);
             font-family: var(--font-main);
-            /* Force height to be slightly larger than screen to ALWAYS allow scrolling */
-            min-height: calc(100vh + 2px); 
+            /* Force scrolling physics */
+            min-height: 101vh; 
             display: flex; 
             justify-content: center;
             align-items: flex-start;
             padding-top: 20px;
-            padding-bottom: 60px; /* Extra space at bottom */
+            padding-bottom: 60px;
             box-sizing: border-box;
-            overscroll-behavior-y: auto; /* Allow pull-to-refresh */
+            overscroll-behavior-y: auto;
         }
 
         .app-container {
             width: 100%; 
             max-width: 480px; 
             padding: 20px;
-            /* Ensure container doesn't block touch events */
-            pointer-events: auto;
         }
 
-        /* Animations */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-        /* UI Elements */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; animation: fadeInUp 0.6s ease-out; }
         .city-info h1 { font-size: 1.4rem; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
         .hijri-display { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500; min-height: 1.2em; transition: opacity 0.5s; }
+        
+        /* New Header Actions Area */
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* Refresh Button */
+        .refresh-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--accent);
+        }
+        .refresh-btn:active { background: rgba(255,255,255,0.1); }
+        .refresh-icon { width: 18px; height: 18px; fill: currentColor; }
+        .refresh-btn.spinning .refresh-icon { animation: spin 0.8s infinite linear; }
+
         .date-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
 
-        /* Date Picker Button */
         .picker-btn { 
-            background: var(--card-bg); 
-            border: 1px solid var(--card-border); 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            height: 50px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            position: relative; 
-            color: var(--text-primary); 
-            animation: fadeInUp 0.6s ease-out 0.1s backwards;
-            /* Critical fix for taps */
-            z-index: 10;
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 20px; height: 50px; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; color: var(--text-primary); 
+            animation: fadeInUp 0.6s ease-out 0.1s backwards; z-index: 10;
         }
-        .picker-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
         .picker-text { font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; pointer-events: none; }
         .calendar-icon { width: 20px; height: 20px; fill: var(--text-secondary); }
         
-        /* Hidden Input Fix: Removed pointer-events: none */
-        #date-input-hidden { 
-            position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            opacity: 0; 
-            cursor: pointer;
-            z-index: 20; /* Sit on top of button */
-        }
+        /* Native Date Input */
+        #date-input-hidden { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 20; }
 
         .hero-section { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); animation: fadeInUp 0.6s ease-out 0.2s backwards; }
         .hero-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
@@ -100,11 +94,9 @@
         .p-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
         .p-range { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
         .p-time-main { font-size: 1.1rem; font-weight: 600; color: var(--accent); text-align: right; }
-        
         .skeleton { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border-radius: 12px; height: 72px; width: 100%; border: 1px solid var(--card-border); }
-
+        
         @media (max-width: 360px) { .app-container { padding: 10px; } .city-info h1 { font-size: 1.2rem; } }
-        @media (max-height: 600px) and (orientation: landscape) { .app-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; align-items: start; } header, .picker-btn, .hero-section { grid-column: 1; } .prayer-grid { grid-column: 2; grid-row: 1 / span 3; } }
     </style>
 </head>
 <body>
@@ -115,7 +107,12 @@
             <h1>Lahore</h1>
             <div class="hijri-display" id="hijri-display">Loading...</div>
         </div>
-        <div class="date-badge" id="date-badge">--/--/--</div>
+        <div class="header-actions">
+            <div class="refresh-btn" onclick="hardRefresh()">
+                <svg class="refresh-icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </div>
+            <div class="date-badge" id="date-badge">--/--/--</div>
+        </div>
     </header>
 
     <div class="picker-btn">
@@ -136,13 +133,10 @@
 </div>
 
 <script>
-    // --- CACHE BUSTER: FORCE DELETE OLD SERVICE WORKER ---
+    // --- APP LOGIC ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister();
-                console.log("Old Service Worker Unregistered");
-            }
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            reg.update(); // Check for updates immediately
         });
     }
 
@@ -159,8 +153,20 @@
         if (!isNaN(date)) handleDateChange(date);
     });
 
-    // NOTE: We don't need onclick="openCalendar()" anymore. 
-    // The input is now overlaying the button and handles the click natively.
+    function hardRefresh() {
+        const btn = document.querySelector('.refresh-btn');
+        btn.classList.add('spinning');
+        
+        // Force reload from server, bypassing cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                for(let reg of regs) reg.unregister();
+                window.location.reload(true);
+            });
+        } else {
+            window.location.reload(true);
+        }
+    }
 
     function handleDateChange(dateObj) {
         updateVisuals(dateObj);
@@ -173,7 +179,6 @@
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const y = String(dateObj.getFullYear()).slice(-2);
         elements.pickerBtn.innerHTML = `<svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg> <span class="picker-text">${d} / ${m} / ${y}</span> <input type="date" id="date-input-hidden">`;
-        // Re-bind listener after innerHTML replacement
         const input = elements.pickerBtn.querySelector('input');
         input.valueAsDate = dateObj;
         input.addEventListener('change', (e) => {
@@ -203,6 +208,8 @@
                 if (data.code === 200) {
                     localStorage.setItem(dateKey, JSON.stringify(data));
                     processData(data, dateObj);
+                    const btn = document.querySelector('.refresh-btn');
+                    if(btn) btn.classList.remove('spinning');
                 }
             }, 300);
         } catch (err) {
