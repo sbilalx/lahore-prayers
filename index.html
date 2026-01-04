@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <meta name="theme-color" content="#0f2027">
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGFob3JlIFByYXllcnMiLCJzaG9ydF9uYW1lIjoiUHJheWVycyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiJc3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGUyMDI3IiwidGhlbWVfY29sb3IiOiIjMGUyMDI3IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzUxNDIvNTE0Mjc5OS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5142/5142799.png">
     
     <title>Lahore Prayer Times</title>
+
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiTGFob3JlIFByYXllcnMiLCJzaG9ydF9uYW1lIjoiUHJheWVycyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiJc3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGUyMDI3IiwidGhlbWVfY29sb3IiOiIjMGUyMDI3IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzUxNDIvNTE0Mjc5OS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5142/5142799.png">
+
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -27,38 +28,65 @@
             background-attachment: fixed;
             color: var(--text-primary);
             font-family: var(--font-main);
-            /* 2. FLEXIBLE LAYOUT: Allows content to overflow naturally */
-            min-height: 100vh;
+            /* Force height to be slightly larger than screen to ALWAYS allow scrolling */
+            min-height: calc(100vh + 2px); 
             display: flex; 
             justify-content: center;
-            align-items: flex-start; /* Aligns to top so scrolling works correctly */
+            align-items: flex-start;
             padding-top: 20px;
-            padding-bottom: 40px;
+            padding-bottom: 60px; /* Extra space at bottom */
             box-sizing: border-box;
+            overscroll-behavior-y: auto; /* Allow pull-to-refresh */
         }
 
         .app-container {
             width: 100%; 
             max-width: 480px; 
             padding: 20px;
-            /* 3. REMOVED SCROLL LOCKS: No fixed height, no overflow hidden */
-            height: auto;
-            overflow: visible;
+            /* Ensure container doesn't block touch events */
+            pointer-events: auto;
         }
 
+        /* Animations */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
+        /* UI Elements */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; animation: fadeInUp 0.6s ease-out; }
         .city-info h1 { font-size: 1.4rem; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
         .hijri-display { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; font-weight: 500; min-height: 1.2em; transition: opacity 0.5s; }
         .date-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
 
-        .picker-btn { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; margin-bottom: 20px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; color: var(--text-primary); animation: fadeInUp 0.6s ease-out 0.1s backwards; }
+        /* Date Picker Button */
+        .picker-btn { 
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            height: 50px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            position: relative; 
+            color: var(--text-primary); 
+            animation: fadeInUp 0.6s ease-out 0.1s backwards;
+            /* Critical fix for taps */
+            z-index: 10;
+        }
         .picker-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
-        .picker-text { font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .picker-text { font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; pointer-events: none; }
         .calendar-icon { width: 20px; height: 20px; fill: var(--text-secondary); }
-        #date-input-hidden { position: absolute; opacity: 0; pointer-events: none; bottom: 0; left: 50%; }
+        
+        /* Hidden Input Fix: Removed pointer-events: none */
+        #date-input-hidden { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            opacity: 0; 
+            cursor: pointer;
+            z-index: 20; /* Sit on top of button */
+        }
 
         .hero-section { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); animation: fadeInUp 0.6s ease-out 0.2s backwards; }
         .hero-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
@@ -90,7 +118,7 @@
         <div class="date-badge" id="date-badge">--/--/--</div>
     </header>
 
-    <div class="picker-btn" onclick="openCalendar()">
+    <div class="picker-btn">
         <span class="picker-text" id="picker-display">
             <svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
             Loading...
@@ -108,13 +136,19 @@
 </div>
 
 <script>
+    // --- CACHE BUSTER: FORCE DELETE OLD SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+                console.log("Old Service Worker Unregistered");
+            }
+        });
+    }
+
     const elements = { grid: document.getElementById('prayer-grid'), pickerBtn: document.getElementById('picker-display'), hiddenInput: document.getElementById('date-input-hidden'), dateBadge: document.getElementById('date-badge'), hijriDisplay: document.getElementById('hijri-display'), nextName: document.getElementById('next-name'), countdown: document.getElementById('countdown') };
     let prayerTimesCache = [];
     let countdownInterval = null;
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Failed', err));
-    }
 
     const today = new Date();
     elements.hiddenInput.valueAsDate = today;
@@ -125,7 +159,8 @@
         if (!isNaN(date)) handleDateChange(date);
     });
 
-    function openCalendar() { try { elements.hiddenInput.showPicker(); } catch (e) { elements.hiddenInput.click(); elements.hiddenInput.focus(); } }
+    // NOTE: We don't need onclick="openCalendar()" anymore. 
+    // The input is now overlaying the button and handles the click natively.
 
     function handleDateChange(dateObj) {
         updateVisuals(dateObj);
@@ -137,7 +172,14 @@
         const d = String(dateObj.getDate()).padStart(2, '0');
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const y = String(dateObj.getFullYear()).slice(-2);
-        elements.pickerBtn.innerHTML = `<svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg> ${d} / ${m} / ${y}`;
+        elements.pickerBtn.innerHTML = `<svg class="calendar-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg> <span class="picker-text">${d} / ${m} / ${y}</span> <input type="date" id="date-input-hidden">`;
+        // Re-bind listener after innerHTML replacement
+        const input = elements.pickerBtn.querySelector('input');
+        input.valueAsDate = dateObj;
+        input.addEventListener('change', (e) => {
+            const date = new Date(e.target.value);
+            if (!isNaN(date)) handleDateChange(date);
+        });
         elements.dateBadge.textContent = `${d}/${m}/${y}`;
     }
 
